@@ -1,10 +1,9 @@
 """Config flow pro Škola OnLine — známky.
 
 Krok 1 (`user`): přihlašovací údaje, ověřené živým loginem přes `so_api`.
-Zároveň se z účtu zkusí zjistit děti (`so_api.async_list_students`) — pole
-`children` u `/v1/user` NENÍ v oficiální OpenAPI spec (viz CLAUDE.md), proto
-krok 2 vždy nabízí i ruční zadání `studentId`, kdyby se automatické zjištění
-nepovedlo nebo bylo neúplné.
+Zároveň se z účtu zkusí zjistit děti (`so_api.async_list_students`) — krok 2
+přesto vždy nabízí i ruční zadání `studentId`, kdyby se automatické zjištění
+nepovedlo nebo bylo neúplné (starší instalace bez pole `children` apod.).
 
 Krok 2 (`children`): multi-select nalezených dětí + textové pole pro ruční
 přidání dalších (`id:Jméno`, čárkou oddělené).

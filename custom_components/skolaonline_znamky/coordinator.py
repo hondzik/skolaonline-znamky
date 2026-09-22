@@ -8,7 +8,7 @@ nahlásila jako "nové" všechny známky znovu.
 
 `unique_id` sensor entit (`sensor.py`) neobsahuje `semester_id` — entita je
 tedy stabilní napříč pololetími/roky, jen si "pod sebou" mění, na jaké
-pololetí `state`/atributy odkazují (viz CLAUDE.md a diskuze v zadání).
+pololetí `state`/atributy odkazují.
 """
 
 from __future__ import annotations

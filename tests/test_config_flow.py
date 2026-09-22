@@ -126,7 +126,7 @@ async def test_full_flow_creates_entry_with_discovered_student(hass):
 
 
 async def test_children_step_manual_entry_fallback_when_nothing_discovered(hass):
-    """Fallback pro nepotvrzené pole `children` u /v1/user — viz CLAUDE.md."""
+    """Fallback pro případ, že se děti nepodaří z /v1/user zjistit automaticky."""
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
     login, get_user, list_students = _patch_login_and_list(students=[])
     with login, get_user, list_students:

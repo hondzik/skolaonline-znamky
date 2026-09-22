@@ -1,14 +1,14 @@
 """Async klient pro API Škola OnLine (Libre) — bez závislosti na `homeassistant.*`.
 
 Testovatelné samostatně (`pytest tests/test_so_api.py`, HTTP mockované ručně přes
-`_FakeResponse` — viz CLAUDE.md, sekce Testy) a spustitelné jako CLI proti reálnému účtu:
+`_FakeResponse`) a spustitelné jako CLI proti reálnému účtu:
 
     SO_USER=... SO_PASS=... python so_api.py user
     SO_USER=... SO_PASS=... python so_api.py semesters --student-id <id>
     SO_USER=... SO_PASS=... python so_api.py marks --student-id <id> [--semester-id <id>]
 
-CLI slouží k živému ověření chování API (viz CLAUDE.md, sekce "Zatím neověřeno / TODO") —
-především chování `SemesterId`/`schoolYearId` bez zadání a stránkování u `marks/list`.
+CLI slouží k živému ověření chování API — především chování `SemesterId`/`schoolYearId`
+bez zadání a stránkování u `marks/list`.
 """
 
 from __future__ import annotations
@@ -178,10 +178,10 @@ class SkolaOnlineClient:
 
         `children` (`UserInfoResponse.children: UserInfoChild[]`, pole `id`/
         `displayName`) je oficiálně zdokumentované v `swagger.json` přímo
-        z API (`.../solapi/swagger/v1/swagger.json`) — viz CLAUDE.md. Pokud
-        pole přesto chybí (starší instalace apod.), vrátí se aspoň přihlášený
-        účet samotný (žákovský login) — `config_flow.py` na tomhle staví
-        fallback na ruční zadání studentId.
+        z API (`.../solapi/swagger/v1/swagger.json`). Pokud pole přesto chybí
+        (starší instalace apod.), vrátí se aspoň přihlášený účet samotný
+        (žákovský login) — `config_flow.py` na tomhle staví fallback na
+        ruční zadání studentId.
         """
         user = await self.async_get_user()
         children = user.get("children")

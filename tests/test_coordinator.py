@@ -231,7 +231,7 @@ async def test_process_new_marks_drops_semesters_other_than_current_and_previous
 
 
 async def test_build_student_data_overall_average_is_mean_of_subject_averages(hass):
-    """Vědomě NE vážený průměr napříč všemi známkami — viz CLAUDE.md."""
+    """Vědomě NE vážený průměr napříč všemi známkami — averagem se rozumí průměr průměrů předmětů."""
     coordinator, _entry = _make_coordinator(hass)
     marks_list = so_api.MarksList(
         marks=[
