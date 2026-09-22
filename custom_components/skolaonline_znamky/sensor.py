@@ -65,7 +65,7 @@ class SkolaOnlineMarksSensor(CoordinatorEntity[SkolaOnlineCoordinator], SensorEn
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"{parent_uid}_{student_id}")},
             name=data.student_name if data else student_id,
-            via_device=(DOMAIN, parent_uid),
+            via_device_id=coordinator.hub_device_id,
         )
 
     @property

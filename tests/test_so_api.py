@@ -258,7 +258,7 @@ def _marks_payload() -> dict:
                 "subjectId": "math",
                 "markText": "1",
                 "weight": 2.0,
-                "date": "2026-09-10",
+                "markDate": "2026-09-10T00:00:00",
                 "theme": "Zlomky",
                 "verbalEvaluation": "",
                 "isPoints": False,
@@ -268,7 +268,7 @@ def _marks_payload() -> dict:
                 "subjectId": "math",
                 "markText": "85",
                 "weight": 1.0,
-                "date": "2026-09-15",
+                "markDate": "2026-09-15T00:00:00",
                 "theme": "Test",
                 "verbalEvaluation": "",
                 "isPoints": True,
@@ -287,6 +287,7 @@ async def test_get_marks_parses_marks_and_subjects():
 
     assert len(marks_list.marks) == 2
     assert marks_list.marks[0].id == "m1"
+    assert marks_list.marks[0].date == "2026-09-10T00:00:00"
     assert marks_list.marks[1].is_points is True
     assert marks_list.subject_names == {"math": "Matematika"}
 

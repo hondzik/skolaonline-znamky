@@ -1,16 +1,14 @@
 """Async klient pro API Škola OnLine (Libre) — bez závislosti na `homeassistant.*`.
 
-Testovatelné samostatně (`pytest tests/test_so_api.py`, mock přes `aioresponses`)
-a spustitelné jako CLI proti reálnému účtu:
+Testovatelné samostatně (`pytest tests/test_so_api.py`, HTTP mockované ručně přes
+`_FakeResponse` — viz CLAUDE.md, sekce Testy) a spustitelné jako CLI proti reálnému účtu:
 
     SO_USER=... SO_PASS=... python so_api.py user
     SO_USER=... SO_PASS=... python so_api.py semesters --student-id <id>
     SO_USER=... SO_PASS=... python so_api.py marks --student-id <id> [--semester-id <id>]
 
-CLI slouží k živému ověření míst, která nejsou v oficiální OpenAPI spec
-zdokumentovaná (viz CLAUDE.md, sekce "Neověřeno proti reálnému API") —
-především pole `children`/`userType` u `/v1/user`, formát `date` u známky
-a chování `SemesterId` u `marks/list` bez zadání.
+CLI slouží k živému ověření chování API (viz CLAUDE.md, sekce "Zatím neověřeno / TODO") —
+především chování `SemesterId`/`schoolYearId` bez zadání a stránkování u `marks/list`.
 """
 
 from __future__ import annotations
@@ -172,21 +170,18 @@ class SkolaOnlineClient:
             raise SkolaOnlineError(f"Chyba spojení na {path}: {err}") from err
 
     async def async_get_user(self) -> dict[str, Any]:
-        """Vrátí syrovou odpověď `/v1/user`.
-
-        Pole `children`/`userType` u rodičovského účtu NEJSOU v oficiální
-        OpenAPI spec — viz `async_list_students`.
-        """
+        """Vrátí syrovou odpověď `/v1/user`."""
         return await self._async_get("/v1/user")
 
     async def async_list_students(self) -> list[Student]:
         """Odvodí seznam dětí z `/v1/user`.
 
-        `children` u rodičovského účtu je jen tvrzení komunitní komponenty
-        (`hacs-calendar_skolaonline`), NEOVĚŘENO proti oficiální spec. Pokud
-        pole chybí, vrátí se aspoň přihlášený účet samotný (žákovský login) —
-        `config_flow.py` na tomhle staví fallback na ruční zadání studentId,
-        když se rodičovské děti tímhle způsobem nenajdou.
+        `children` (`UserInfoResponse.children: UserInfoChild[]`, pole `id`/
+        `displayName`) je oficiálně zdokumentované v `swagger.json` přímo
+        z API (`.../solapi/swagger/v1/swagger.json`) — viz CLAUDE.md. Pokud
+        pole přesto chybí (starší instalace apod.), vrátí se aspoň přihlášený
+        účet samotný (žákovský login) — `config_flow.py` na tomhle staví
+        fallback na ruční zadání studentId.
         """
         user = await self.async_get_user()
         children = user.get("children")
@@ -236,7 +231,7 @@ class SkolaOnlineClient:
                 subject_id=str(m["subjectId"]),
                 value=m.get("markText", ""),
                 weight=float(m.get("weight") or 0.0),
-                date=m.get("date", ""),
+                date=m.get("markDate", ""),
                 theme=m.get("theme", ""),
                 verbal_evaluation=m.get("verbalEvaluation", ""),
                 is_points=bool(m.get("isPoints", False)),

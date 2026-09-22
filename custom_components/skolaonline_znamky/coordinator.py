@@ -140,6 +140,7 @@ class SkolaOnlineCoordinator(DataUpdateCoordinator[dict[str, StudentData]]):
             update_interval=dt.timedelta(seconds=interval_seconds + jitter),
         )
         self.entry = entry
+        self.hub_device_id: str | None = None
         self._marks_per_subject = entry.options.get(CONF_MARKS_PER_SUBJECT, MARKS_PER_SUBJECT)
         self.client = so_api.SkolaOnlineClient(aiohttp_client.async_get_clientsession(hass))
         self._store: Store = Store(

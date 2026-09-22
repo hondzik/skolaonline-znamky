@@ -23,14 +23,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.runtime_data = coordinator
 
     # Hub device pro celý rodičovský účet — jednotlivé děti (sensor.py) na
-    # něj odkazují přes `via_device`, aby byly v UI pohromadě pod účtem.
+    # něj odkazují přes `via_device_id`, aby byly v UI pohromadě pod účtem.
     device_registry = dr.async_get(hass)
-    device_registry.async_get_or_create(
+    hub_device = device_registry.async_get_or_create(
         config_entry_id=entry.entry_id,
         identifiers={(DOMAIN, entry.unique_id or entry.entry_id)},
         name=f"Škola OnLine ({entry.data['username']})",
         entry_type=dr.DeviceEntryType.SERVICE,
     )
+    coordinator.hub_device_id = hub_device.id
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
