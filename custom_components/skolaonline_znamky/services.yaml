@@ -1,0 +1,19 @@
+get_marks:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: skolaonline_znamky
+    student_id:
+      required: true
+      selector:
+        text:
+    semester_id:
+      required: false
+      selector:
+        text:
+    subject_id:
+      required: false
+      selector:
+        text:

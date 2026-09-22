@@ -1,0 +1,14 @@
+{
+  "release-type": "simple",
+  "packages": {
+    ".": {
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "custom_components/skolaonline_znamky/manifest.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}

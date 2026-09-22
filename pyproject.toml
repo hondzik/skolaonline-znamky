@@ -1,0 +1,10 @@
+[tool.pytest.ini_options]
+pythonpath = ["custom_components/skolaonline_znamky", "."]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+include = ["**/so_api.py"]
+
+[tool.coverage.report]
+show_missing = true

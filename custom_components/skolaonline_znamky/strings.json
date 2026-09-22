@@ -1,0 +1,117 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Škola OnLine — Marks",
+        "description": "Enter the login for your Škola OnLine parent account. It is used only to read marks — nothing is changed in the school system.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "children": {
+        "title": "Children to track",
+        "description": "Select which children found on this account should be tracked. If a child wasn't found automatically, add it manually below as \"studentId:Name\" (comma-separated for more than one) — the list of children on a parent account is not fully documented by Škola OnLine's API, so this fallback exists in case auto-detection is incomplete.",
+        "data": {
+          "students_selected": "Detected children",
+          "manual_students": "Manually added children"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Škola OnLine",
+        "description": "The login for account \"{username}\" is no longer valid. Enter the current password to continue.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid username or password.",
+      "cannot_connect": "Could not connect to Škola OnLine.",
+      "no_students_selected": "Select or manually add at least one child."
+    },
+    "abort": {
+      "already_configured": "This account is already configured.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Škola OnLine — Marks options",
+        "menu_options": {
+          "children": "Change tracked children",
+          "settings": "Update interval and attribute size"
+        }
+      },
+      "children": {
+        "title": "Children to track",
+        "description": "Select which children found on this account should be tracked, or add one manually.",
+        "data": {
+          "students_selected": "Detected children",
+          "manual_students": "Manually added children"
+        }
+      },
+      "settings": {
+        "title": "Update interval and attribute size",
+        "data": {
+          "update_interval_minutes": "Update interval (minutes)",
+          "marks_per_subject": "Marks kept per subject in attributes"
+        },
+        "data_description": {
+          "update_interval_minutes": "How often to poll Škola OnLine for new marks.",
+          "marks_per_subject": "How many of the most recent marks per subject are kept in the sensor attributes. Older marks are still available on demand via the get_marks service."
+        }
+      }
+    },
+    "error": {
+      "no_students_selected": "Select or manually add at least one child."
+    },
+    "abort": {
+      "invalid_auth": "Invalid username or password.",
+      "cannot_connect": "Could not connect to Škola OnLine."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "marks": {
+        "name": "Marks"
+      }
+    }
+  },
+  "services": {
+    "get_marks": {
+      "name": "Get marks",
+      "description": "Fetch the complete list of marks for a child (and optionally a semester/subject) fresh from Škola OnLine — used for the \"show more\" action in the marks card, since sensor attributes only keep a short recent list.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "Which Škola OnLine account to use."
+        },
+        "student_id": {
+          "name": "Child",
+          "description": "Must be one of the children already configured for this account."
+        },
+        "semester_id": {
+          "name": "Semester",
+          "description": "Leave empty for the current semester."
+        },
+        "subject_id": {
+          "name": "Subject",
+          "description": "Leave empty to return all subjects."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "entry_not_found": {
+      "message": "Škola OnLine account not found."
+    },
+    "entry_not_loaded": {
+      "message": "This Škola OnLine account is not currently loaded."
+    },
+    "student_not_configured": {
+      "message": "Child {student_id} is not configured for this account."
+    }
+  }
+}

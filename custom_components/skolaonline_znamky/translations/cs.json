@@ -1,0 +1,117 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Škola OnLine — Známky",
+        "description": "Zadejte přihlašovací údaje k rodičovskému účtu Škola OnLine. Používají se jen ke čtení známek — v systému školy se nic nemění.",
+        "data": {
+          "username": "Uživatelské jméno",
+          "password": "Heslo"
+        }
+      },
+      "children": {
+        "title": "Sledované děti",
+        "description": "Vyberte, které z nalezených dětí se mají sledovat. Pokud se dítě nenašlo automaticky, přidejte ho ručně níže ve tvaru \"studentId:Jméno\" (víc dětí oddělte čárkou) — seznam dětí na rodičovském účtu není v API Škola OnLine plně zdokumentovaný, tahle záloha je pro případ, že automatické zjištění nebude úplné.",
+        "data": {
+          "students_selected": "Nalezené děti",
+          "manual_students": "Ručně přidané děti"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Znovu přihlásit Škola OnLine",
+        "description": "Přihlášení k účtu „{username}“ už není platné. Zadejte aktuální heslo pro pokračování.",
+        "data": {
+          "password": "Heslo"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Neplatné uživatelské jméno nebo heslo.",
+      "cannot_connect": "Nepodařilo se připojit ke Škola OnLine.",
+      "no_students_selected": "Vyberte nebo ručně přidejte alespoň jedno dítě."
+    },
+    "abort": {
+      "already_configured": "Tento účet je už nakonfigurovaný.",
+      "reauth_successful": "Opětovné přihlášení proběhlo úspěšně."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Škola OnLine — Známky, nastavení",
+        "menu_options": {
+          "children": "Změnit sledované děti",
+          "settings": "Interval a velikost atributů"
+        }
+      },
+      "children": {
+        "title": "Sledované děti",
+        "description": "Vyberte, které z nalezených dětí se mají sledovat, nebo přidejte dítě ručně.",
+        "data": {
+          "students_selected": "Nalezené děti",
+          "manual_students": "Ručně přidané děti"
+        }
+      },
+      "settings": {
+        "title": "Interval a velikost atributů",
+        "data": {
+          "update_interval_minutes": "Interval aktualizace (minuty)",
+          "marks_per_subject": "Počet známek na předmět v atributech"
+        },
+        "data_description": {
+          "update_interval_minutes": "Jak často se má stahovat kontrola nových známek ze Škola OnLine.",
+          "marks_per_subject": "Kolik posledních známek na předmět se drží v atributech senzoru. Starší známky jdou dohledat na vyžádání přes službu get_marks."
+        }
+      }
+    },
+    "error": {
+      "no_students_selected": "Vyberte nebo ručně přidejte alespoň jedno dítě."
+    },
+    "abort": {
+      "invalid_auth": "Neplatné uživatelské jméno nebo heslo.",
+      "cannot_connect": "Nepodařilo se připojit ke Škola OnLine."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "marks": {
+        "name": "Známky"
+      }
+    }
+  },
+  "services": {
+    "get_marks": {
+      "name": "Získat známky",
+      "description": "Stáhne kompletní seznam známek dítěte (volitelně za pololetí/předmět) čerstvě ze Škola OnLine — použití pro tlačítko „více“ v kartě se známkami, protože atributy senzoru drží jen krátký nedávný seznam.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Účet",
+          "description": "Který účet Škola OnLine použít."
+        },
+        "student_id": {
+          "name": "Dítě",
+          "description": "Musí být jedno z dětí už nakonfigurovaných pro tento účet."
+        },
+        "semester_id": {
+          "name": "Pololetí",
+          "description": "Ponechte prázdné pro aktuální pololetí."
+        },
+        "subject_id": {
+          "name": "Předmět",
+          "description": "Ponechte prázdné pro všechny předměty."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "entry_not_found": {
+      "message": "Účet Škola OnLine nebyl nalezen."
+    },
+    "entry_not_loaded": {
+      "message": "Tento účet Škola OnLine není aktuálně načtený."
+    },
+    "student_not_configured": {
+      "message": "Dítě {student_id} není pro tento účet nakonfigurované."
+    }
+  }
+}
