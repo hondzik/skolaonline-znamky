@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/hondzik/skolaonline-znamky/compare/v0.3.0...v0.4.0) (2026-09-23)
+
+
+### Features
+
+* add timetable subjects integration and related tests ([d0e6d44](https://github.com/hondzik/skolaonline-znamky/commit/d0e6d44c141e8a4a8de9ee9a6628f0d4f80a9dd9))
+
 ## [0.3.0](https://github.com/hondzik/skolaonline-znamky/compare/v0.2.0...v0.3.0) (2026-09-22)
 
 
