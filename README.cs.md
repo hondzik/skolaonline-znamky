@@ -19,6 +19,8 @@ jedna sensor entita na dítě.
   stejná konvence jako na vysvědčení).
 - Atributy: aktuální pololetí/školní rok, rozpis po předmětech s průměrem každého předmětu a
   jeho posledními známkami (pár na předmět, ne celá historie — viz níže).
+- Předmět se v rozpisu objeví, i než z něj padne první známka — kompletní seznam předmětů se
+  bere z rozvrhu, ne jen z těch, které už mají hodnocení.
 - Event `skolaonline_znamky_new_mark` se vystřelí při skutečně nové známce (sleduje se i přes
   restart HA, takže se staré známky po restartu nehlásí znovu jako nové).
 - Služba `skolaonline_znamky.get_marks` stáhne na vyžádání **kompletní** seznam známek (včetně

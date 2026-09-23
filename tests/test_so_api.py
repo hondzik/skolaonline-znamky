@@ -315,6 +315,71 @@ async def test_get_marks_omits_semester_id_when_not_given():
 
 
 # ---------------------------------------------------------------------------
+# async_get_timetable_subjects
+# ---------------------------------------------------------------------------
+
+
+def _timetable_payload() -> dict:
+    return {
+        "days": [
+            {
+                "schedules": [
+                    {"subject": {"id": "math", "name": "Matematika"}},
+                    {"subject": {"id": "cz", "name": "Český jazyk"}},
+                ]
+            },
+            {
+                "schedules": [
+                    # Stejný předmět v jiný den — nemá se duplikovat.
+                    {"subject": {"id": "math", "name": "Matematika"}},
+                    # Rozvrhovaná událost bez předmětu (suplování, akce) — přeskočit.
+                    {"subject": None},
+                ]
+            },
+        ]
+    }
+
+
+async def test_get_timetable_subjects_parses_unique_subjects():
+    with _patch_post(_token_response()), _patch_get(
+        _FakeResponse(json_body=_timetable_payload())
+    ):
+        async with aiohttp.ClientSession() as session:
+            client = so_api.SkolaOnlineClient(session)
+            await client.async_login("user", "pass")
+            subjects = await client.async_get_timetable_subjects(
+                "student-1", "2026-09-01T00:00:00", "2026-09-15T00:00:00"
+            )
+
+    assert subjects == {"math": "Matematika", "cz": "Český jazyk"}
+
+
+async def test_get_timetable_subjects_sends_params():
+    get_mock = MagicMock(return_value=_FakeResponse(json_body=_timetable_payload()))
+    with _patch_post(_token_response()), patch.object(aiohttp.ClientSession, "get", get_mock):
+        async with aiohttp.ClientSession() as session:
+            client = so_api.SkolaOnlineClient(session)
+            await client.async_login("user", "pass")
+            await client.async_get_timetable_subjects("student-1", "from", "to")
+
+    assert get_mock.call_args.kwargs["params"] == {
+        "StudentId": "student-1",
+        "DateFrom": "from",
+        "DateTo": "to",
+    }
+
+
+async def test_get_timetable_subjects_empty_days_returns_empty_dict():
+    with _patch_post(_token_response()), _patch_get(_FakeResponse(json_body={"days": []})):
+        async with aiohttp.ClientSession() as session:
+            client = so_api.SkolaOnlineClient(session)
+            await client.async_login("user", "pass")
+            subjects = await client.async_get_timetable_subjects("student-1", "from", "to")
+
+    assert subjects == {}
+
+
+# ---------------------------------------------------------------------------
 # weighted_average
 # ---------------------------------------------------------------------------
 

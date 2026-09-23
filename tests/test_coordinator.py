@@ -25,6 +25,7 @@ from custom_components.skolaonline_znamky.coordinator import (
     _parse_date,
     _pick_current_semester,
     _school_year_label,
+    _timetable_window,
 )
 
 USERNAME = "rodic@example.cz"
@@ -46,6 +47,9 @@ def _make_coordinator(hass) -> tuple[SkolaOnlineCoordinator, MockConfigEntry]:
     entry.add_to_hass(hass)
     coordinator = SkolaOnlineCoordinator(hass, entry)
     coordinator.client = AsyncMock(spec=so_api.SkolaOnlineClient)
+    # Výchozí "žádné doplňkové předměty z rozvrhu" — testy, které se o tuhle
+    # obohacovací funkci nezajímají, si tak nemusí mock samy konfigurovat.
+    coordinator.client.async_get_timetable_subjects = AsyncMock(return_value={})
     return coordinator, entry
 
 
@@ -143,6 +147,21 @@ def test_pick_current_semester_first_semester_has_no_previous():
     current, previous = _pick_current_semester(semesters, dt.date(2026, 10, 1))
     assert current.id == "s1"
     assert previous is None
+
+
+# ---------------------------------------------------------------------------
+# _timetable_window
+# ---------------------------------------------------------------------------
+
+
+def test_timetable_window_returns_14_day_range_from_semester_start():
+    window = _timetable_window("2026-09-01")
+    assert window == ("2026-09-01T00:00:00", "2026-09-15T00:00:00")
+
+
+def test_timetable_window_unparseable_date_returns_none():
+    assert _timetable_window("") is None
+    assert _timetable_window("not-a-date") is None
 
 
 # ---------------------------------------------------------------------------
@@ -289,6 +308,33 @@ async def test_build_student_data_limits_marks_per_subject(hass):
     assert data.subjects[0].count == 3  # count je z celého pololetí, ne jen zobrazených
 
 
+async def test_build_student_data_adds_subjects_without_marks_from_timetable(hass):
+    """Předmět z rozvrhu bez jediné známky se má objevit s prázdným polem marks."""
+    coordinator, _entry = _make_coordinator(hass)
+    marks_list = so_api.MarksList(
+        marks=[_mark("m1", subject_id="math", value="1")],
+        subject_names={"math": "Matematika"},
+    )
+    current = _semester("sem-1", "2026-09-01", "2027-01-31")
+
+    data = coordinator._build_student_data(
+        STUDENT_ID,
+        STUDENT_NAME,
+        current,
+        None,
+        marks_list,
+        timetable_subjects={"math": "Matematika", "tv": "Tělesná výchova"},
+    )
+
+    by_id = {s.subject_id: s for s in data.subjects}
+    assert by_id["tv"].subject_name == "Tělesná výchova"
+    assert by_id["tv"].average is None
+    assert by_id["tv"].count == 0
+    assert by_id["tv"].marks == []
+    # Předmět, co už známku má, se z rozvrhu nepřepisuje na prázdný.
+    assert by_id["math"].count == 1
+
+
 async def test_build_student_data_school_year_and_previous_semester(hass):
     coordinator, _entry = _make_coordinator(hass)
     marks_list = so_api.MarksList(marks=[], subject_names={})
@@ -328,6 +374,46 @@ async def test_semesters_cache_refetches_when_current_semester_ended(hass):
     await coordinator._async_get_semesters_cached(STUDENT_ID)
 
     assert coordinator.client.async_get_semesters.await_count == 2
+
+
+# ---------------------------------------------------------------------------
+# _async_get_timetable_subjects
+# ---------------------------------------------------------------------------
+
+
+async def test_get_timetable_subjects_returns_client_result(hass):
+    coordinator, _entry = _make_coordinator(hass)
+    coordinator.client.async_get_timetable_subjects = AsyncMock(
+        return_value={"tv": "Tělesná výchova"}
+    )
+
+    result = await coordinator._async_get_timetable_subjects(STUDENT_ID, "2026-09-01")
+
+    assert result == {"tv": "Tělesná výchova"}
+    coordinator.client.async_get_timetable_subjects.assert_awaited_once_with(
+        STUDENT_ID, "2026-09-01T00:00:00", "2026-09-15T00:00:00"
+    )
+
+
+async def test_get_timetable_subjects_unparseable_date_returns_empty_without_calling_api(hass):
+    coordinator, _entry = _make_coordinator(hass)
+
+    result = await coordinator._async_get_timetable_subjects(STUDENT_ID, "")
+
+    assert result == {}
+    coordinator.client.async_get_timetable_subjects.assert_not_awaited()
+
+
+async def test_get_timetable_subjects_api_error_is_swallowed(hass):
+    """Nefatální — bez rozvrhu integrace pořád funguje jen s předměty ze známek."""
+    coordinator, _entry = _make_coordinator(hass)
+    coordinator.client.async_get_timetable_subjects = AsyncMock(
+        side_effect=so_api.SkolaOnlineError("boom")
+    )
+
+    result = await coordinator._async_get_timetable_subjects(STUDENT_ID, "2026-09-01")
+
+    assert result == {}
 
 
 # ---------------------------------------------------------------------------

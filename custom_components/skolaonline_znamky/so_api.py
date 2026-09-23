@@ -241,6 +241,27 @@ class SkolaOnlineClient:
         subject_names = {str(s["id"]): s.get("name", "") for s in data.get("subjects", [])}
         return MarksList(marks=marks, subject_names=subject_names)
 
+    async def async_get_timetable_subjects(
+        self, student_id: str, date_from: str, date_to: str
+    ) -> dict[str, str]:
+        """Vrátí `{subjectId: name}` z rozvrhu za dané období (`/v1/timeTable`).
+
+        Na rozdíl od `async_get_marks` nezávisí na existenci hodnocení — zachytí
+        i předměty, kde zatím žádná známka nepadla (`marks/list` takové předměty
+        vůbec neobsahuje).
+        """
+        data = await self._async_get(
+            "/v1/timeTable",
+            params={"StudentId": student_id, "DateFrom": date_from, "DateTo": date_to},
+        )
+        subjects: dict[str, str] = {}
+        for day in data.get("days", []):
+            for scheduled in day.get("schedules", []):
+                subject = scheduled.get("subject")
+                if subject and subject.get("id"):
+                    subjects[str(subject["id"])] = subject.get("name", "")
+        return subjects
+
 
 def weighted_average(marks: list[Mark]) -> float | None:
     """Vážený průměr klasických známek (bodové/slovní hodnocení se vynechává).

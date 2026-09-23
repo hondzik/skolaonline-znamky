@@ -76,6 +76,23 @@ def _parse_date(value: str) -> dt.date | None:
         return None
 
 
+TIMETABLE_SUBJECTS_WINDOW_DAYS = 14  # zachytí i sudý/lichý týden rozvrhu
+
+
+def _timetable_window(date_from: str) -> tuple[str, str] | None:
+    """Prvních `TIMETABLE_SUBJECTS_WINDOW_DAYS` dní pololetí jako rozsah pro `/v1/timeTable`.
+
+    Cílem je vytáhnout kompletní seznam předmětů z rozvrhu (i těch zatím bez
+    známky), ne konkrétní hodiny — rozvrh je stabilní vzor opakující se každý
+    týden, takže první dva týdny pololetí stačí i pro sudý/lichý týden.
+    """
+    start = _parse_date(date_from)
+    if start is None:
+        return None
+    end = start + dt.timedelta(days=TIMETABLE_SUBJECTS_WINDOW_DAYS)
+    return f"{start.isoformat()}T00:00:00", f"{end.isoformat()}T00:00:00"
+
+
 def _school_year_label(date_from: dt.date | None) -> str:
     if date_from is None:
         return ""
@@ -195,6 +212,10 @@ class SkolaOnlineCoordinator(DataUpdateCoordinator[dict[str, StudentData]]):
             except so_api.SkolaOnlineError as err:
                 raise UpdateFailed(f"{student_name}: {err}") from err
 
+            timetable_subjects = await self._async_get_timetable_subjects(
+                student_id, current.date_from
+            )
+
             previous_id = previous.id if previous else None
             if self._async_process_new_marks(
                 student_id, current.id, previous_id, marks_list, student_name
@@ -202,13 +223,30 @@ class SkolaOnlineCoordinator(DataUpdateCoordinator[dict[str, StudentData]]):
                 store_dirty = True
 
             result[student_id] = self._build_student_data(
-                student_id, student_name, current, previous, marks_list
+                student_id, student_name, current, previous, marks_list, timetable_subjects
             )
 
         if store_dirty:
             self._store.async_delay_save(lambda: self._seen_marks, 10)
 
         return result
+
+    async def _async_get_timetable_subjects(
+        self, student_id: str, semester_date_from: str
+    ) -> dict[str, str]:
+        """Doplňkový seznam předmětů z rozvrhu — nefatální, jen obohacuje atributy.
+
+        Na rozdíl od známek se bez tohohle integrace obejde (`marks_list.subject_names`
+        pořád stačí na zobrazení toho, co už má hodnocení) — chyba se jen zaloguje.
+        """
+        window = _timetable_window(semester_date_from)
+        if window is None:
+            return {}
+        try:
+            return await self.client.async_get_timetable_subjects(student_id, *window)
+        except so_api.SkolaOnlineError as err:
+            _LOGGER.debug("Seznam předmětů z rozvrhu se nepodařilo stáhnout: %s", err)
+            return {}
 
     async def _async_get_semesters_cached(self, student_id: str) -> list[so_api.Semester]:
         cached = self._semesters_cache.get(student_id)
@@ -280,6 +318,7 @@ class SkolaOnlineCoordinator(DataUpdateCoordinator[dict[str, StudentData]]):
         current: so_api.Semester,
         previous: so_api.Semester | None,
         marks_list: so_api.MarksList,
+        timetable_subjects: dict[str, str] | None = None,
     ) -> StudentData:
         by_subject: dict[str, list[so_api.Mark]] = {}
         for mark in marks_list.marks:
@@ -297,6 +336,22 @@ class SkolaOnlineCoordinator(DataUpdateCoordinator[dict[str, StudentData]]):
                     marks=marks_sorted[: self._marks_per_subject],
                 )
             )
+
+        # Předměty z rozvrhu, kde zatím žádná známka nepadla — `marks/list` je
+        # vůbec neobsahuje, takže by jinak v atributech chyběly úplně.
+        for subject_id, subject_name in (timetable_subjects or {}).items():
+            if subject_id in by_subject:
+                continue
+            subjects.append(
+                SubjectMarks(
+                    subject_id=subject_id,
+                    subject_name=subject_name or subject_id,
+                    average=None,
+                    count=0,
+                    marks=[],
+                )
+            )
+
         subjects.sort(key=lambda s: s.subject_name)
 
         subject_averages = [s.average for s in subjects if s.average is not None]

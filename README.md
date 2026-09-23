@@ -19,6 +19,8 @@ into Home Assistant. One config entry per parent account, one sensor entity per 
   average, same convention as a report card).
 - Attributes: current semester/school year, per-subject breakdown with each subject's average
   and its most recent marks (a handful per subject, not the full history — see below).
+- Subjects show up even before they have a single mark yet — the full subject list comes from
+  the timetable, not just from subjects that already have a grade.
 - A `skolaonline_znamky_new_mark` event fires when a genuinely new mark appears (tracked across
   restarts, so you won't get old marks re-announced as "new").
 - A `skolaonline_znamky.get_marks` service fetches the **complete** mark list (including the
