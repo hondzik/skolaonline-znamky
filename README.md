@@ -36,6 +36,8 @@ under that limit no matter how many marks accumulate over a school year.
 
 ## Installation (HACS)
 
+[![My Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?repository=skolaonline-znamky&owner=hondzik&category=Integration)
+
 Add this repository as a custom HACS repository (category: Integration), install, restart Home
 Assistant, then add the integration from Settings → Devices & services.
 
@@ -53,7 +55,9 @@ attributes.
 
 - Only marks for the *current* semester are exposed as live entity state. Historical semesters
   are reachable via the `get_marks` service, not as separate entities.
-- No Lovelace card is included yet.
+- No Lovelace card is included in this repository — see
+  [`hondzik/skolaonline-znamky-ui`](https://github.com/hondzik/skolaonline-znamky-ui) for a
+  companion card that displays the marks from this integration.
 
 ## Credits
 

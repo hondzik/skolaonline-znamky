@@ -36,6 +36,8 @@ pod limitem bez ohledu na to, kolik známek se za školní rok nahromadí.
 
 ## Instalace (HACS)
 
+[![My Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?repository=skolaonline-znamky&owner=hondzik&category=Integration)
+
 Přidejte tento repozitář jako vlastní HACS repozitář (kategorie: Integration), nainstalujte,
 restartujte Home Assistant a přidejte integraci přes Nastavení → Zařízení a služby.
 
@@ -52,7 +54,9 @@ sledované děti, interval stahování a kolik posledních známek na předmět 
 
 - Jako živý stav entity jsou dostupné jen známky za *aktuální* pololetí. Historická pololetí
   jsou dosažitelná přes službu `get_marks`, ne jako samostatné entity.
-- Zatím bez Lovelace karty.
+- Lovelace karta není součástí tohoto repozitáře — viz
+  [`hondzik/skolaonline-znamky-ui`](https://github.com/hondzik/skolaonline-znamky-ui), kartu
+  pro zobrazení známek z téhle integrace.
 
 ## Poděkování
 
